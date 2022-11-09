@@ -1,1 +1,0 @@
-g++ boxpush.cpp -o build.o
