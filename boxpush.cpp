@@ -360,6 +360,7 @@ int main() {
         const std::string drn = cm.draw();
         std::cout << clearConsole(cm.height);
         std::cout << pty::paint("> Score : ", {"grey", "bold"}) << pty::paint(cm.score, cm.score == 0 ? "red" : "green");
+        std::cout << pty::paint(" | Level : ", {"grey", "bold"}) << pty::paint(std::to_string(game.mapIndex + 1) + " / " + std::to_string(game.maps.size()), "orange");
         std::cout << pty::paint(" | Player co-ordinates : ", {"grey", "bold"}) << player.x << " , " << player.y << std::endl;
         std::cout << drn;
 
