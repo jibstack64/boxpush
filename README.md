@@ -18,5 +18,5 @@
 - `r` - Resets the level you are on.
 
 ### Extra
-- There is are `Windows` and `*nix` binaries in each release.
-- The Windows build uses non-unicode characters as the (rather mediocre) Command Prompt does not support them.
+- There are `*nix` builds with every release. If you are on `Windows`, you will have to build it yourself, P.S. look below.
+- The Windows build uses non-unicode characters as the (rather mediocre) PS/CM does not support them.
