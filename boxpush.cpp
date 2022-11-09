@@ -2,7 +2,7 @@
 // https://github.com/jibstack64/boxpush
 
 #include <iostream>
-#include <caca_conio.h>
+//#include <caca_conio.h>
 #include <vector>
 #include <random>
 #include <cmath>
