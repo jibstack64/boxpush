@@ -2,32 +2,32 @@
 // https://github.com/jibstack64/boxpush
 
 #include <iostream>
-//#include <caca_conio.h>
 #include <vector>
 #include <random>
 #include <cmath>
 
-#include "include/pretty.hpp"
+#include "include/pretty.hpp" // https://github.com/jibstack64/pretty
+#include "include/argh.h" // https://github.com/adishavit/argh
 
 // drawing characters
 // chars in strings are past U+FFFF therefore require bigger containers
 // has no difference in (game) performance since done at runtime
-#ifdef __unix__
-const std::string BOX = pty::paint("▩", "orange");
-const std::string GBX = pty::paint("✔", "green");
-const std::string BGD = pty::paint("□", "grey");
-const std::string PLR = pty::paint("☻", "yellow");
-const std::string TRG = pty::paint("X", "red");
-const std::string WLL = pty::paint("#", "bold"); // automatically added when drawing
-const std::string ERR = pty::paint("?", "lightred");
+#ifndef _WIN32
+std::string BOX = pty::paint("▩", "turqoise");
+std::string GBX = pty::paint("✔", "green");
+std::string BGD = pty::paint("□", "grey");
+std::string PLR = pty::paint("☻", "yellow");
+std::string TRG = pty::paint("X", "lightred");
+std::string WLL = pty::paint("#", "bold"); // automatically added when drawing
+std::string ERR = pty::paint("?", "lightred");
 #else
-const std::string BOX = pty::paint("[]", "orange");
-const std::string GBX = pty::paint("**", "green");
-const std::string BGD = pty::paint("[]", "grey");
-const std::string PLR = pty::paint(":)", "yellow");
-const std::string TRG = pty::paint("xx", "red");
-const std::string WLL = pty::paint("##", "bold"); // automatically added when drawing
-const std::string ERR = pty::paint("??", "lightred");
+std::string BOX = pty::paint("::", "turqoise");
+std::string GBX = pty::paint("**", "green");
+std::string BGD = pty::paint("[]", "grey");
+std::string PLR = pty::paint(":)", "yellow");
+std::string TRG = pty::paint("xx", "lightred");
+std::string WLL = pty::paint("##", "bold"); // automatically added when drawing
+std::string ERR = pty::paint("??", "lightred");
 #endif
 
 enum class drawing {
@@ -62,6 +62,13 @@ const std::string clearConsole(int x = 50) {
         clr += "\n";
     }
     return clr;
+}
+
+// outputs the text provided in a red, alerting colour and then quit()s.
+int fatal(const std::string text, int status = 1) {
+    std::cout << pty::paint(text, {"lightred", "bold"}) << std::endl;
+    exit(status);
+    return status; // for syntaxical sexiness!
 }
 
 // the class used by all objects in the game, such as the players, boxes and targets.
@@ -305,18 +312,16 @@ struct map {
         // detect the number of boxes and targets to be generated given the w and h
         totalScore = (w*h)/10;
         if (totalScore == 0) {
-            totalScore = w; // last resort, anyone making a fork / pull won't be this stupid...
+            totalScore = w; // last resort, anyone making a fork of the game won't be this stupid...
         }
         // auto-generate boxes and targets
         for (int i = 1; i < totalScore+1; i++) {
             objects.push_back(autoObject(drawing::Cross)); // target
             objects[i].capturePoint = true;
-            std::cout << i << std::endl;
         }
         for (int i = totalScore+1; i < (totalScore*2)+1; i++) {
             objects.push_back(autoObject(drawing::FullBox)); // box
             objects[i].captureBox = true;
-            std::cout << i << std::endl;
         }
 
         // original objects in case of reset()
@@ -337,10 +342,79 @@ struct boxpush {
     boxpush(std::initializer_list<map> ms) : maps(ms) { srand(time(0)); }
 };
 
-int main() {
+int main(int argc, char ** argv) {
+    // check if any game modifiers have been passed
+    argh::parser parser;
+    parser.add_params({
+        "--map", // <width,height>
+        "--override-player", // <text>
+        "--override-box", // <text>
+        "--override-target", // <text>
+        "--override-border", // <text>
+        "--override-background", // <text>
+        "--override-tick", // <text>
+    });
+
+    // if these have a value above -1, then --map has been passed
+    int optionalWidth = -1;
+    int optionalHeight = -1;
+
+    // parse arguments
+    parser.parse(argv);
+    for (const auto& argCouple : parser.params()) {
+        if (argCouple.first == "map") {
+            // parse width and height from the provided text
+            std::string widthS, heightS;
+            int switchIndex = argCouple.second.find(',');
+            for (int i = 0; i < argCouple.second.size(); i++) {
+                if (i > switchIndex) {
+                    heightS += argCouple.second[i];
+                }
+                if (i < switchIndex) {
+                    widthS += argCouple.second[i];
+                }
+            }
+            // attempt to parse the values into integers
+            try {
+                optionalWidth = std::atoi(widthS.c_str());
+                optionalHeight = std::atoi(heightS.c_str());
+                if (optionalWidth < 4 || optionalHeight < 4) {
+                    return fatal("The map width and height must both be at least 4.");
+                }
+            } catch (std::exception) {
+                return fatal("Error parsing width and height from '--map' parameter.");
+            }
+        } else {
+            // if the function is an override function, parse override type
+            std::string overrideType;
+            int switchIndex = argCouple.first.find_last_of('-');
+            for (int i = switchIndex+1; i < argCouple.first.size(); i++) {
+                overrideType += argCouple.first[i];
+            }
+            std::cout << overrideType;
+            // simple if for every override type
+            if (overrideType == "player") {
+                PLR = pty::paint(argCouple.second, "yellow");
+            } else if (overrideType == "box") {
+                BOX = pty::paint(argCouple.second, "blue");
+            } else if (overrideType == "target") {
+                TRG = pty::paint(argCouple.second, "lightred");
+            } else if (overrideType == "border") {
+                WLL = pty::paint(argCouple.second, "bold");
+            } else if (overrideType == "background") {
+                BGD = pty::paint(argCouple.second, "grey");
+            } else if (overrideType == "tick") {
+                GBX = pty::paint(argCouple.second, "green");
+            }
+        }
+    }
+
     // initialise the main game object and the maps.
     boxpush game(
-        {
+        // --map?
+        optionalWidth > -1
+        ? std::initializer_list<map>{ map(optionalWidth, optionalHeight) }
+        : std::initializer_list<map>{
             map(10, 10), map(12, 8), map(10, 8),
             map(10, 12), map(12, 12), map(8, 8),
             map(10, 10), map(12, 9), map(11, 11),
