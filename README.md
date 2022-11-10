@@ -1,5 +1,6 @@
 # boxpush
 
+![Downloads](https://img.shields.io/github/downloads/jibstack64/boxpush/total)
 ![GitHub tag (latest by date)](https://img.shields.io/badge/tag-0.3b-success)
 
 #### A fun command-line game where you push boxes!
