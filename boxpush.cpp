@@ -13,6 +13,7 @@
 // chars in strings are past U+FFFF therefore require bigger containers
 // has no difference in (game) performance since done at runtime
 #ifndef _WIN32
+#define CONTROLS_GRID std::string("w⬆,a⬅,s⬇,d➡,r⏪")
 std::string BOX = pty::paint("▩", "turqoise");
 std::string GBX = pty::paint("✔", "green");
 std::string BGD = pty::paint("□", "grey");
@@ -21,6 +22,7 @@ std::string TRG = pty::paint("X", "lightred");
 std::string WLL = pty::paint("#", "bold"); // automatically added when drawing
 std::string ERR = pty::paint("?", "lightred");
 #else
+#define CONTROLS_GRID std::string("w,a,s,d,r")
 std::string BOX = pty::paint("::", "turqoise");
 std::string GBX = pty::paint("**", "green");
 std::string BGD = pty::paint("[]", "grey");
@@ -440,7 +442,7 @@ int main(int argc, char ** argv) {
 
         // await user input
         retake: // for retaking key input
-        std::cout << pty::paint("\nWhich way do you wish to move?", "bold") << pty::paint(" (w⬆,a⬅,s⬇,d➡,r⏪)", "grey") << ": ";
+        std::cout << pty::paint("\nWhich way do you wish to move?", "bold") << pty::paint(" (" + CONTROLS_GRID + ")", "grey") << ": ";
         char moveKey;
         std::cin >> moveKey;
 
