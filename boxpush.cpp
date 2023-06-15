@@ -22,6 +22,9 @@ std::string TRG = pty::paint("X", "lightred");
 std::string WLL = pty::paint("#", "bold"); // automatically added when drawing
 std::string ERR = pty::paint("?", "lightred");
 #else
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING  0x0004
+#endif
 #define CONTROLS_GRID std::string("w,a,s,d,r")
 std::string BOX = pty::paint("::", "turqoise");
 std::string GBX = pty::paint("**", "green");
